@@ -26,11 +26,11 @@ class CharacterEditorScreen extends StatefulWidget {
 }
 
 class _CharacterEditorScreenState extends State<CharacterEditorScreen> {
-  // State Rotasi Fake 3D (0: Front, 1: 3/4 Right, 2: Side, 3: 3/4 Left)
+  // Angle Rotasi (0: Front, 1: 3/4 Right, 2: Side, 3: 3/4 Left)
   int _currentAngleIndex = 0;
   final List<String> _angles = ['Front (0°)', '3/4 Right (45°)', 'Side (90°)', '3/4 Left (315°)'];
 
-  // State Kustomisasi Modular
+  // State Aset Modular (Z-Index Layering)
   int _selectedHair = 1;
   int _selectedExpression = 1;
   int _selectedOutfit = 1;
@@ -39,14 +39,14 @@ class _CharacterEditorScreenState extends State<CharacterEditorScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Comipo Lite - 2D Fake 3D Studio'),
+        title: const Text('Comipo Lite Studio'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.download_sharp),
+            icon: const Icon(Icons.download),
             tooltip: 'Export to Panel',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Exporting character to PNG transparent panel...')),
+                const SnackBar(content: Text('Karakter siap di-export ke Canvas Manga!')),
               );
             },
           ),
@@ -54,37 +54,84 @@ class _CharacterEditorScreenState extends State<CharacterEditorScreen> {
       ),
       body: Column(
         children: [
-          // 1. CANVAS VIEWPORT (FAKE 3D RENDER ENGINE)
+          // 1. STACK RENDERING ENGINE (LAYER Z-INDEX)
           Expanded(
             flex: 3,
             child: Container(
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.grey[900],
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.cyanAccent, width: 1.5),
               ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.accessibility_new, size: 120, color: Colors.cyanAccent),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Angle: ${_angles[_currentAngleIndex]}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Layer 0: Background Grid Canvas Manga
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: GridPainter(),
                     ),
-                    Text(
-                      'Hair #$_selectedHair | Face #$_selectedExpression | Outfit #$_selectedOutfit',
-                      style: TextStyle(color: Colors.grey[400]),
+                  ),
+                  
+                  // Layer 1: Avatar Render Node
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Tampilan Visual Karakter Dummy
+                        Container(
+                          width: 180,
+                          height: 240,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.cyanAccent.withOpacity(0.5), width: 1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Layer A: Base Body / Pose Frame
+                              Icon(
+                                _currentAngleIndex == 2 ? Icons.accessibility : Icons.accessibility_new,
+                                size: 140,
+                                color: Colors.grey[300],
+                              ),
+                              // Layer B: Outfit Overlay
+                              Positioned(
+                                bottom: 20,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                  color: Colors.cyanAccent.withOpacity(0.2),
+                                  child: Text('Outfit #$_selectedOutfit', style: const TextStyle(fontSize: 10)),
+                                ),
+                              ),
+                              // Layer C: Expression Overlay
+                              Positioned(
+                                top: 40,
+                                child: Text('Exp #$_selectedExpression', style: const TextStyle(fontSize: 10, color: Colors.yellowAccent)),
+                              ),
+                              // Layer D: Hair Overlay
+                              Positioned(
+                                top: 15,
+                                child: Text('Hair #$_selectedHair', style: const TextStyle(fontSize: 10, color: Colors.cyanAccent)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Angle View: ${_angles[_currentAngleIndex]}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.cyanAccent),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
 
-          // 2. FAKE 3D ROTATION SLIDER (EASY POSE STYLE)
+          // 2. FAKE 3D ROTATION SLIDER
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -93,7 +140,7 @@ class _CharacterEditorScreenState extends State<CharacterEditorScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('360° Angle View Controller:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Rotasi Angle 360°:', style: TextStyle(fontWeight: FontWeight.bold)),
                     Text(_angles[_currentAngleIndex], style: const TextStyle(color: Colors.cyanAccent)),
                   ],
                 ),
@@ -115,7 +162,7 @@ class _CharacterEditorScreenState extends State<CharacterEditorScreen> {
 
           const Divider(),
 
-          // 3. CHARAT STYLE MODULAR SELECTOR
+          // 3. CHARAT ITEM SELECTOR
           Expanded(
             flex: 2,
             child: DefaultTabController(
@@ -125,19 +172,16 @@ class _CharacterEditorScreenState extends State<CharacterEditorScreen> {
                   const TabBar(
                     indicatorColor: Colors.cyanAccent,
                     tabs: [
-                      Tab(icon: Icon(Icons.face), text: 'Hair'),
-                      Tab(icon: Icon(Icons.emoji_emotions), text: 'Expression'),
-                      Tab(icon: Icon(Icons.checkroom), text: 'Outfit'),
+                      Tab(icon: Icon(Icons.face), text: 'Rambut'),
+                      Tab(icon: Icon(Icons.emoji_emotions), text: 'Ekspresi'),
+                      Tab(icon: Icon(Icons.checkroom), text: 'Pakaian'),
                     ],
                   ),
                   Expanded(
                     child: TabBarView(
                       children: [
-                        // Tab Hair
-                        _buildItemGrid(5, _selectedHair, (idx) => setState(() => _selectedHair = idx)),
-                        // Tab Expression
-                        _buildItemGrid(4, _selectedExpression, (idx) => setState(() => _selectedExpression = idx)),
-                        // Tab Outfit
+                        _buildItemGrid(6, _selectedHair, (idx) => setState(() => _selectedHair = idx)),
+                        _buildItemGrid(5, _selectedExpression, (idx) => setState(() => _selectedExpression = idx)),
                         _buildItemGrid(6, _selectedOutfit, (idx) => setState(() => _selectedOutfit = idx)),
                       ],
                     ),
@@ -176,9 +220,9 @@ class _CharacterEditorScreenState extends State<CharacterEditorScreen> {
             ),
             child: Center(
               child: Text(
-                'Item #$itemNumber',
+                '#$itemNumber',
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey[400],
+                  color: isSelected ? Colors.cyanAccent : Colors.grey[400],
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
@@ -188,4 +232,25 @@ class _CharacterEditorScreenState extends State<CharacterEditorScreen> {
       },
     );
   }
+}
+
+// Background Grid Canvas Painter
+class GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      color = Colors.white.withOpacity(0.05)
+      ..strokeWidth = 1;
+
+    const double step = 20;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
