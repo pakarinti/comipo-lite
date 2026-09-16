@@ -26,10 +26,13 @@ jobs:
       - name: Generate Android Skeleton Files
         run: flutter create --platforms=android --project-name comipo_lite .
 
+      - name: Accept Android Licenses
+        run: yes | flutter doctor --android-licenses || true
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK (Debug Mode)
+      - name: Build APK
         run: flutter build apk --debug
 
       - name: Upload APK Artifact
